@@ -1,8 +1,7 @@
 "use strict";
 
+const fs = require('fs'); 
 const readline = require('readline'); 
-//const fs = require('fs'); 
-const lineByLine = require('n-readlines');
 
 const ml = require('./model');
 const game = require('./game');
@@ -40,41 +39,29 @@ var logger = winston.createLogger({
     ]
 });
 
-/*async function onLine(data) {
+async function onLine(data) {
 //  console.log(data);
     await game.proceed(model, SIZE, BATCH, data, logger);
-}*/
+}
 
 async function proceed() {
     model = await ml.create(1, SIZE, logger);
-    const reader = new lineByLine('data/hex.dat'); 
-    let line;
-    while (line = reader.next()) { 
-        console.log(line.toString()); 
-        await game.proceed(model, SIZE, BATCH, line.toString(), logger);
-    } 
-/*  readline.createInterface({ 
+    const rl = readline.createInterface({
         input: fs.createReadStream('data/hex.dat'), 
         console: false 
-    }).on('line', onLine);*/
-/*  await game.proceed(model, SIZE, BATCH, 'FaAcFbKcFcBcBbJcJbCcCbIcIbHcFdDcFeGcFfEcGeEiHgGfFgGhDiEhDhEgHhGgHeHfIeIfJeJfDfDgCgChFhFiBhBiAjAiKeKf', logger);
-    await game.proceed(model, SIZE, BATCH, 'FaAcFbKcFcBcBbJcJbCcCbIcIbHcFdDcFeGcFfEcGeEiDiEgGgFgGfFiHhGjIiHgGhHiIhHkJjJkIkIjJi', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgEeDeDfAhBfCfDgBiBhAiBg', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgEeDeDfAhBfCfDgBiBhBgAi', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgEeBgDfDgCe', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgEeBfDfBhCfBgCd', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgDeEeEfBhBiDgEhDhCjDiDjEiEkEjDkGjFjGhHiIhDfCeCcBdBcCdDcDdEcEdFcGcHbHc', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeEgEd', logger);
-    await game.proceed(model, SIZE, BATCH, 'CaFfCgChHhHeDgEd', logger);*/
+    });
+    for await (const line of rl) {
+        await game.proceed(model, SIZE, BATCH, line, logger);
+    }
 }
 
 function exec() {
     setTimeout(exec, 1000);
 }
 
-function run() {
-    proceed();
+async function run() {
+    await proceed();
     exec();
 }
 
-run();
+(async () => { await run(); })();
