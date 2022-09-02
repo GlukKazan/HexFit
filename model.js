@@ -1,11 +1,12 @@
 "use strict";
 
+const _ = require('underscore');
 const tf = require('@tensorflow/tfjs');
 //const wasm = require('@tensorflow/tfjs-backend-wasm');
 //const {nodeFileSystemRouter} = require('@tensorflow/tfjs-node/dist/io/file_system');
 
-const BATCH_SIZE  = 128;
-const EPOCH_COUNT = 7;
+const BATCH_SIZE  = 4; // 128;
+const EPOCH_COUNT = 1;  // 7;
 const VALID_SPLIT = 0.1;
 
 const FILE_PREFIX = 'file:///users/user';
@@ -19,14 +20,21 @@ async function init() {
     console.log(tf.getBackend());
 }
 
-async function load(url) {
+async function load(url, logger) {
+    const t0 = Date.now();
     await init();
     const model = await tf.loadLayersModel(url);
     model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
+    const t1 = Date.now();
+    console.log('Model [' + url + '] loaded: ' + (t1 - t0));
+    if (!_.isUndefined(logger)) {
+        logger.info('Model [' + url + '] loaded: ' + (t1 - t0));
+    }
     return model;
 }
 
-async function create(mode, size) {
+async function create(mode, size, logger) {
+    const t0 = Date.now();
     await init();
     const model = tf.sequential();
     const shape = [1, size, size];
@@ -98,10 +106,15 @@ async function create(mode, size) {
 
     model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
 
+    const t1 = Date.now();
+    console.log('Model created: ' + (t1 - t0));
+    if (!_.isUndefined(logger)) {
+        logger.info('Model created: ' + (t1 - t0));
+    }
     return model;
 }
 
-async function fit(model, size, x, y, batch) {
+async function fit(model, size, x, y, batch, logger) {
     const xshape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, xshape, 'float32');
     const yshape = [batch, size * size];
@@ -116,16 +129,22 @@ async function fit(model, size, x, y, batch) {
 
 //  console.log(h);
     for (let i = 0; i < EPOCH_COUNT; i++) {
-        logger.info('epoch = ' + i + ', acc = ' + h.history.acc[i] + ', loss = ' + h.history.loss[i] + ', val_acc = ' + h.history.val_acc[i] + ', val_loss = ' + h.history.val_loss[i]);
+        console.log('epoch = ' + i + ', acc = ' + h.history.acc[i] + ', loss = ' + h.history.loss[i] + ', val_acc = ' + h.history.val_acc[i] + ', val_loss = ' + h.history.val_loss[i]);
+        if (!_.isUndefined(logger)) {
+            logger.info('epoch = ' + i + ', acc = ' + h.history.acc[i] + ', loss = ' + h.history.loss[i] + ', val_acc = ' + h.history.val_acc[i] + ', val_loss = ' + h.history.val_loss[i]);
+        }
     }
     const t1 = Date.now();
     console.log('Fit time: ' + (t1 - t0));
+    if (!_.isUndefined(logger)) {
+        logger.info('Fit time: ' + (t1 - t0));
+    }
 
     xs.dispose();
     ys.dispose();
 }
 
-async function predict(model, size, x, batch) {
+async function predict(model, size, x, batch, logger) {
     const shape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, shape, 'float32');
 
@@ -134,6 +153,9 @@ async function predict(model, size, x, batch) {
     const y = await ys.data();
     const t1 = Date.now();
     console.log('Predict time: ' + (t1 - t0));
+    if (!_.isUndefined(logger)) {
+        logger.info('Predict time: ' + (t1 - t0));
+    }
 
     xs.dispose();
     ys.dispose();
