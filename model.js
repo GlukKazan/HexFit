@@ -1,19 +1,19 @@
 "use strict";
 
 const _ = require('underscore');
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node-gpu');
 //const wasm = require('@tensorflow/tfjs-backend-wasm');
 //const {nodeFileSystemRouter} = require('@tensorflow/tfjs-node/dist/io/file_system');
 
-const BATCH_SIZE  = 4; // 128;
-const EPOCH_COUNT = 1;  // 7;
+const BATCH_SIZE  = 256;
+const EPOCH_COUNT = 10;
 const VALID_SPLIT = 0.1;
 
-const FILE_PREFIX = 'file:///users/user';
+const FILE_PREFIX = 'file:///users/valen';
 
 async function init() {
     await tf.ready();
-//  await tf.enableProdMode();
+    await tf.enableProdMode();
 //  await tf.setBackend('wasm');
 //  tf.io.registerLoadRouter(nodeFileSystemRouter);
 //  tf.io.registerSaveRouter(nodeFileSystemRouter);
@@ -163,10 +163,8 @@ async function predict(model, size, x, batch, logger) {
     return y;
 }
 
-async function save(fileName) {
-    isReady = false;
+async function save(model, fileName) {
     await model.save(`${FILE_PREFIX}/${fileName}`);
-    isReady = true;
 }
 
 module.exports.create = create;

@@ -7,7 +7,7 @@ const ml = require('./model');
 const game = require('./game');
 
 const SIZE  = 11;
-const BATCH = 10; // 100;
+const BATCH = 1024;
 
 let model = null;
 
@@ -45,7 +45,7 @@ async function onLine(data) {
 }
 
 async function proceed() {
-    model = await ml.create(1, SIZE, logger);
+    model = await ml.create(3, SIZE, logger);
     const rl = readline.createInterface({
         input: fs.createReadStream('data/hex.dat'), 
         console: false 
@@ -53,15 +53,11 @@ async function proceed() {
     for await (const line of rl) {
         await game.proceed(model, SIZE, BATCH, line, logger);
     }
-}
-
-function exec() {
-    setTimeout(exec, 1000);
+    await ml.save(model, 'hex-' + size + '.json');
 }
 
 async function run() {
     await proceed();
-    exec();
 }
 
 (async () => { await run(); })();

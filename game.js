@@ -10,6 +10,8 @@ let Y = null;
 let C = 0;
 let offset = 0;
 
+let cnt = 0;
+
 function dump(board, size, offset, moves) {
     for (let y = 0; y < size; y++) {
         let s = '';
@@ -57,6 +59,12 @@ async function proceed(model, size, batch, data, logger) {
             if ((X === null) || (C >= batch)) {
                 if (X !== null) {
                     await ml.fit(model, size, X, Y, C, logger);
+                    cnt++;
+                    if ((cnt % 100) == 0) {
+                        await ml.save(model, 'hex-' + size + '-' + cnt + '.json');
+                        console.log('Save [' + cnt + ']: ' + data);
+                        logger.info('Save [' + cnt + ']: ' + data);
+                    }
                 }
                 offset = 0;
                 X = new Float32Array(batch * size * size);
