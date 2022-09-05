@@ -47,13 +47,13 @@ async function onLine(data) {
 async function proceed() {
     model = await ml.create(3, SIZE, logger);
     const rl = readline.createInterface({
-        input: fs.createReadStream('data/hex.dat'), 
+        input: fs.createReadStream('data/hex-' + SIZE + '.txt'), 
         console: false 
     });
     for await (const line of rl) {
         await game.proceed(model, SIZE, BATCH, line, logger);
     }
-    await ml.save(model, 'hex-' + size + '.json');
+    await ml.save(model, 'hex-large-' + SIZE + '.json');
 }
 
 async function run() {

@@ -60,8 +60,8 @@ async function proceed(model, size, batch, data, logger) {
                 if (X !== null) {
                     await ml.fit(model, size, X, Y, C, logger);
                     cnt++;
-                    if ((cnt % 100) == 0) {
-                        await ml.save(model, 'hex-' + size + '-' + cnt + '.json');
+                    if ((cnt % 1000) == 0) {
+                        await ml.save(model, 'hex-large-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }

@@ -2,8 +2,6 @@
 
 const _ = require('underscore');
 const tf = require('@tensorflow/tfjs-node-gpu');
-//const wasm = require('@tensorflow/tfjs-backend-wasm');
-//const {nodeFileSystemRouter} = require('@tensorflow/tfjs-node/dist/io/file_system');
 
 const BATCH_SIZE  = 256;
 const EPOCH_COUNT = 10;
@@ -14,9 +12,6 @@ const FILE_PREFIX = 'file:///users/valen';
 async function init() {
     await tf.ready();
     await tf.enableProdMode();
-//  await tf.setBackend('wasm');
-//  tf.io.registerLoadRouter(nodeFileSystemRouter);
-//  tf.io.registerSaveRouter(nodeFileSystemRouter);
     console.log(tf.getBackend());
 }
 
