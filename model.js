@@ -4,7 +4,7 @@ const _ = require('underscore');
 const tf = require('@tensorflow/tfjs-node-gpu');
 
 const BATCH_SIZE  = 256;
-const EPOCH_COUNT = 10;
+const EPOCH_COUNT = 7;
 const VALID_SPLIT = 0.1;
 
 const FILE_PREFIX = 'file:///users/valen';
