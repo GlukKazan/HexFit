@@ -71,11 +71,11 @@ async function proceed(model, size, batch, data, logger) {
                 Y = new Float32Array(batch * size * size);
                 C = 0;
             }
-            if (pos > 0) {
+            if (player * winner > 0) {
                 for (let i = 0; i < size * size; i++) {
                     X[offset + rotate(i, size, ix)] = board[i] * player;
                 }
-                Y[offset + rotate(move, size, ix)] = player * winner;
+                Y[offset + rotate(move, size, ix)] = 1;
 //              dump(X, size, offset, Y);
                 C++;
                 offset += size * size;
