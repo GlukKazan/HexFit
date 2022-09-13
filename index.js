@@ -25,7 +25,7 @@ const logFormat = winston.format.combine(
 
 var transport = new winston.transports.DailyRotateFile({
     dirname: '',
-    filename: 'gobot-%DATE%.log',
+    filename: 'hex-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
@@ -45,7 +45,7 @@ async function onLine(data) {
 }
 
 async function proceed() {
-    model = await ml.create(3, SIZE, logger);
+    model = await ml.create(/*1,*/ SIZE, logger);
     const rl = readline.createInterface({
         input: fs.createReadStream('data/hex-' + SIZE + '.txt'), 
         console: false 
