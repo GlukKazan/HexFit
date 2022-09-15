@@ -45,7 +45,7 @@ async function onLine(data) {
 }
 
 async function proceed() {
-    model = await ml.create(/*1,*/ SIZE, logger);
+    model = await ml.create(SIZE, logger);
     const rl = readline.createInterface({
         input: fs.createReadStream('data/hex-' + SIZE + '.txt'), 
         console: false 

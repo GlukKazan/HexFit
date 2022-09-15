@@ -76,9 +76,9 @@ async function proceed(model, size, batch, data, logger) {
             for (let i = 0; i < size * size; i++) {
                 X[offset + rotate(i, size, ix)] = board[i] * player;
             }
-            Y[offset + rotate(move, size, ix)] = (player * winner > 0) ? 1 : 0;
+            Y[offset + rotate(move, size, ix)] = 1;
             Z[offset] = player * winner;
-//              dump(X, size, offset, Y);
+//          dump(X, size, offset, Y);
             C++;
             offset += size * size;
         }
