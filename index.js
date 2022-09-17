@@ -7,7 +7,6 @@ const ml = require('./model');
 const game = require('./game');
 
 const SIZE  = 11;
-const URL   = 'https://games.dtco.ru/hex-' + SIZE + '/model.json';
 const BATCH = 1024;
 
 let model = null;
