@@ -4,8 +4,9 @@ const _ = require('underscore');
 const tf = require('@tensorflow/tfjs-node-gpu');
 
 const BATCH_SIZE  = 256;
-const EPOCH_COUNT = 7;
+const EPOCH_COUNT = 10;
 const VALID_SPLIT = 0.1;
+const LEARNING_RATE = 0.0001;
 
 const FILE_PREFIX = 'file:///users/valen';
 
@@ -19,7 +20,8 @@ async function load(url, logger) {
     const t0 = Date.now();
     await init();
     const model = await tf.loadLayersModel(url);
-    model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
+    const opt = tf.train.sgd(LEARNING_RATE);
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError', metrics: ['accuracy']});
     const t1 = Date.now();
     console.log('Model [' + url + '] loaded: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -28,78 +30,44 @@ async function load(url, logger) {
     return model;
 }
 
-async function create(mode, size, logger) {
+async function create(size, logger) {
     const t0 = Date.now();
     await init();
-    const model = tf.sequential();
-    const shape = [1, size, size];
 
-    if (mode == 1) {
-        model.add(tf.layers.zeroPadding2d({padding: 3, inputShape: shape, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 48, kernelSize: [7, 7], dataFormat: 'channelsFirst', activation: 'relu'}));
-    
-        model.add(tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-    
-        model.add(tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-    
-        model.add(tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-    
-        model.add(tf.layers.flatten());
-        model.add(tf.layers.dense({units: 512, activation: 'relu'}));
-    }
+    const input = tf.input({shape: [1, size, size]});
+    const z1 = tf.layers.zeroPadding2d({padding: [3, 3], dataFormat: 'channelsFirst'}).apply(input);
+    const c1 = tf.layers.conv2d({filters: 64, kernelSize: [7, 7], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z1);
 
-    if (mode == 2) {
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], inputShape: shape, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [5, 5], padding: 'valid', dataFormat: 'channelsFirst', activation: 'relu'}));
+    const z2 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c1);
+    const c2 = tf.layers.conv2d({filters: 64, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z2);
 
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const z3 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c2);
+    const c3 = tf.layers.conv2d({filters: 64, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z3);
 
-        model.add(tf.layers.zeroPadding2d({padding: [1, 1], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [3, 3], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const z4 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c3);
+    const c4 = tf.layers.conv2d({filters: 48, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z4);
 
-        model.add(tf.layers.zeroPadding2d({padding: [1, 1], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [3, 3], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const z5 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c4);
+    const c5 = tf.layers.conv2d({filters: 48, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z5);
 
-        model.add(tf.layers.zeroPadding2d({padding: [1, 1], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [3, 3], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const z6 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c5);
+    const c6 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z6);
 
-        model.add(tf.layers.flatten());
-        model.add(tf.layers.dense({units: 512, activation: 'relu'}));
-    }
+    const z7 = tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}).apply(c6);
+    const c7 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z7);
 
-    if (mode == 3) {
-        model.add(tf.layers.zeroPadding2d({padding: [3, 3], inputShape: shape, dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [7, 7], padding: 'valid', dataFormat: 'channelsFirst', activation: 'relu'}));
+    const fl = tf.layers.flatten().apply(c7);
+    const board = tf.layers.dense({units: 512, activation: 'relu'}).apply(fl);
 
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const action = tf.input({shape: size * size});
+    const out = tf.layers.concatenate().apply([board, action]);
 
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 64, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
+    const hidden = tf.layers.dense({units: 512, activation: 'relu'}).apply(out);
+    const value = tf.layers.dense({units: 1, activation: 'tanh'}).apply(hidden);
 
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 48, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 48, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-
-        model.add(tf.layers.zeroPadding2d({padding: [2, 2], dataFormat: 'channelsFirst'}));
-        model.add(tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}));
-
-        model.add(tf.layers.flatten());
-        model.add(tf.layers.dense({units: 1024, activation: 'relu'}));
-    }
-
-    model.add(tf.layers.dense({units: size * size, activation: 'softmax'}));
-
-    model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
+    const model = tf.model({inputs: [input, action], outputs: value});
+//  const opt = tf.train.sgd(LEARNING_RATE);
+    model.compile({optimizer: 'sgd', loss:'meanSquaredError', metrics: ['accuracy']});
 
     const t1 = Date.now();
     console.log('Model created: ' + (t1 - t0));
@@ -109,14 +77,16 @@ async function create(mode, size, logger) {
     return model;
 }
 
-async function fit(model, size, x, y, batch, logger) {
+async function fit(model, size, x, y, z, batch, logger) {
     const xshape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, xshape, 'float32');
     const yshape = [batch, size * size];
     const ys =  tf.tensor2d(y, yshape, 'float32');
+    const zshape = [batch, 1];
+    const zs =  tf.tensor2d(z, zshape, 'float32');
 
     const t0 = Date.now();
-    const h = await model.fit(xs, ys, {
+    const h = await model.fit([xs, ys], zs, {
         batchSize: BATCH_SIZE,
         epochs: EPOCH_COUNT,
         validationSplit: VALID_SPLIT
@@ -137,15 +107,18 @@ async function fit(model, size, x, y, batch, logger) {
 
     xs.dispose();
     ys.dispose();
+    zs.dispose();
 }
 
-async function predict(model, size, x, batch, logger) {
+async function predict(model, size, x, y, batch, logger) {
     const shape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, shape, 'float32');
+    const yshape = [batch, size * size];
+    const ys =  tf.tensor2d(y, yshape, 'float32');
 
     const t0 = Date.now();
-    const ys = await model.predict(xs);
-    const y = await ys.data();
+    const zs = await model.predict([xs, ys]);
+    const z = await zs.data();
     const t1 = Date.now();
     console.log('Predict time: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -154,8 +127,9 @@ async function predict(model, size, x, batch, logger) {
 
     xs.dispose();
     ys.dispose();
+    zs.dispose();
 
-    return y;
+    return z;
 }
 
 async function save(model, fileName) {

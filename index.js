@@ -6,9 +6,8 @@ const readline = require('readline');
 const ml = require('./model');
 const game = require('./game');
 
-const URL   = 'https://games.dtco.ru/hex-11/model.json';
-const MODE  = 1;
-const SIZE  = 10;
+const SIZE  = 11;
+const URL   = 'https://games.dtco.ru/hex-' + SIZE + '/model.json';
 const BATCH = 1024;
 
 let model = null;
@@ -27,7 +26,7 @@ const logFormat = winston.format.combine(
 
 var transport = new winston.transports.DailyRotateFile({
     dirname: '',
-    filename: 'half-' + SIZE + '-' + MODE + '.log',
+    filename: 'q-' + SIZE + '-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
@@ -42,7 +41,7 @@ var logger = winston.createLogger({
 });
 
 async function proceed() {
-    model = await ml.create(MODE, SIZE, logger);
+    model = await ml.create(SIZE, logger);
  // model = await ml.load(URL, logger);
     const rl = readline.createInterface({
         input: fs.createReadStream('data/hex-' + SIZE + '.txt'), 
@@ -51,7 +50,7 @@ async function proceed() {
     for await (const line of rl) {
         await game.proceed(model, SIZE, BATCH, line, logger);
     }
-    await ml.save(model, 'half-' + MODE + '-' + SIZE + '.json');
+    await ml.save(model, 'q-' + SIZE + '.json');
 }
 
 async function run() {

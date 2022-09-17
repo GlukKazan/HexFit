@@ -3,10 +3,12 @@
 const _ = require('underscore');
 const ml = require('./model');
 
-const LETTERS = 'ABCDEFGHIJKLMNabcdefghijklm';
+const LETTERS = 'ABCDEFGHIJKLMNabcdefghijklmn';
 
 let X = null;
 let Y = null;
+let Z = null;
+
 let C = 0;
 let offset = 0;
 
@@ -58,10 +60,10 @@ async function proceed(model, size, batch, data, logger) {
         for (let ix = 0; ix < 2; ix++) {
             if ((X === null) || (C >= batch)) {
                 if (X !== null) {
-                    await ml.fit(model, size, X, Y, C, logger);
+                    await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'half-2-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'q-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
@@ -69,17 +71,17 @@ async function proceed(model, size, batch, data, logger) {
                 offset = 0;
                 X = new Float32Array(batch * size * size);
                 Y = new Float32Array(batch * size * size);
+                Z = new Float32Array(batch);
                 C = 0;
             }
-            if (player * winner > 0) {
-                for (let i = 0; i < size * size; i++) {
-                    X[offset + rotate(i, size, ix)] = board[i] * player;
-                }
-                Y[offset + rotate(move, size, ix)] = 1;
-//              dump(X, size, offset, Y);
-                C++;
-                offset += size * size;
+            for (let i = 0; i < size * size; i++) {
+                X[offset + rotate(i, size, ix)] = board[i] * player;
             }
+            Y[offset + rotate(move, size, ix)] = 1;
+            Z[offset] = player * winner;
+//          dump(X, size, offset, Y);
+            C++;
+            offset += size * size;
         }
         board[move] = player;
     }
