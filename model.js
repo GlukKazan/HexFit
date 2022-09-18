@@ -20,8 +20,7 @@ async function load(url, logger) {
     const t0 = Date.now();
     await init();
     const model = await tf.loadLayersModel(url);
-    const opt = tf.train.sgd(LEARNING_RATE);
-    model.compile({optimizer: 'sgd', loss: 'meanSquaredError', metrics: ['accuracy']});
+    model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
     const t1 = Date.now();
     console.log('Model [' + url + '] loaded: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -57,18 +56,12 @@ async function create(size, logger) {
     const c7 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z7);
 
     const fl = tf.layers.flatten().apply(c7);
-    const board = tf.layers.dense({units: 512, activation: 'relu'}).apply(fl);
+    const board = tf.layers.dense({units: 1024, activation: 'relu'}).apply(fl);
 
-    const action = tf.input({shape: size * size});
-    const out = tf.layers.concatenate().apply([board, action]);
-
-    const hidden = tf.layers.dense({units: 512, activation: 'relu'}).apply(out);
-    const value = tf.layers.dense({units: 1, activation: 'tanh'}).apply(hidden);
-
-    const model = tf.model({inputs: [input, action], outputs: value});
-//  const opt = tf.train.sgd(LEARNING_RATE);
-    model.compile({optimizer: 'sgd', loss:'meanSquaredError', metrics: ['accuracy']});
-
+    const out = tf.layers.dense({units: size * size, activation: 'softmax'}).apply(board);
+    const model = tf.model({inputs: input, outputs: out});
+    model.compile({optimizer: 'sgd', loss:'categoricalCrossentropy', metrics: ['accuracy']});
+   
     const t1 = Date.now();
     console.log('Model created: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -77,16 +70,14 @@ async function create(size, logger) {
     return model;
 }
 
-async function fit(model, size, x, y, z, batch, logger) {
+async function fit(model, size, x, y, batch, logger) {
     const xshape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, xshape, 'float32');
     const yshape = [batch, size * size];
     const ys =  tf.tensor2d(y, yshape, 'float32');
-    const zshape = [batch, 1];
-    const zs =  tf.tensor2d(z, zshape, 'float32');
 
     const t0 = Date.now();
-    const h = await model.fit([xs, ys], zs, {
+    const h = await model.fit(xs, ys, {
         batchSize: BATCH_SIZE,
         epochs: EPOCH_COUNT,
         validationSplit: VALID_SPLIT
@@ -107,18 +98,15 @@ async function fit(model, size, x, y, z, batch, logger) {
 
     xs.dispose();
     ys.dispose();
-    zs.dispose();
 }
 
-async function predict(model, size, x, y, batch, logger) {
+async function predict(model, size, x, batch, logger) {
     const shape = [batch, 1, size, size];
     const xs = tf.tensor4d(x, shape, 'float32');
-    const yshape = [batch, size * size];
-    const ys =  tf.tensor2d(y, yshape, 'float32');
 
     const t0 = Date.now();
-    const zs = await model.predict([xs, ys]);
-    const z = await zs.data();
+    const ys = await model.predict(xs);
+    const y = await ys.data();
     const t1 = Date.now();
     console.log('Predict time: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -127,9 +115,8 @@ async function predict(model, size, x, y, batch, logger) {
 
     xs.dispose();
     ys.dispose();
-    zs.dispose();
 
-    return z;
+    return y;
 }
 
 async function save(model, fileName) {

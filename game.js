@@ -7,7 +7,6 @@ const LETTERS = 'ABCDEFGHIJKLMNabcdefghijklmn';
 
 let X = null;
 let Y = null;
-let Z = null;
 
 let C = 0;
 let offset = 0;
@@ -46,10 +45,16 @@ function rotate(pos, size, ix) {
     return ((size - 1) - y) * size + (size - 1) - x;
 }
 
+function flip(pos, size, player) {
+    if (player > 0) return pos;
+    const x = pos % size;
+    const y = (pos / size) | 0;
+    return x * size + y;
+}
+
 async function proceed(model, size, batch, data, logger) {
     if (data.length % 2 != 0) return;
     let board = new Float32Array(size * size);
-    let winner = (data.length % 4 != 0) ? 1 : -1;
     let player = 1;
     for (let pos = 0; pos < data.length - 1; pos += 2, player = -player) {
         const x = _.indexOf(LETTERS, data[pos]);
@@ -60,10 +65,10 @@ async function proceed(model, size, batch, data, logger) {
         for (let ix = 0; ix < 2; ix++) {
             if ((X === null) || (C >= batch)) {
                 if (X !== null) {
-                    await ml.fit(model, size, X, Y, Z, C, logger);
+                    await ml.fit(model, size, X, Y, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'q-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'flip-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
@@ -71,14 +76,12 @@ async function proceed(model, size, batch, data, logger) {
                 offset = 0;
                 X = new Float32Array(batch * size * size);
                 Y = new Float32Array(batch * size * size);
-                Z = new Float32Array(batch);
                 C = 0;
             }
             for (let i = 0; i < size * size; i++) {
-                X[offset + rotate(i, size, ix)] = board[i] * player;
+                X[offset + flip(rotate(i, size, ix), player)] = board[i] * player;
             }
-            Y[offset + rotate(move, size, ix)] = 1;
-            Z[offset] = player * winner;
+            Y[offset + flip(rotate(move, size, ix), player)] = 1;
 //          dump(X, size, offset, Y);
             C++;
             offset += size * size;
