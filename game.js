@@ -45,8 +45,7 @@ function rotate(pos, size, ix) {
     return ((size - 1) - y) * size + (size - 1) - x;
 }
 
-function flip(pos, size, player) {
-    if (player > 0) return pos;
+function flip(pos, size) {
     const x = pos % size;
     const y = (pos / size) | 0;
     return x * size + y;
@@ -79,9 +78,9 @@ async function proceed(model, size, batch, data, logger) {
                 C = 0;
             }
             for (let i = 0; i < size * size; i++) {
-                X[offset + flip(rotate(i, size, ix), player)] = board[i] * player;
+                X[offset + flip(rotate(i, size, ix), size)] = board[i] * player;
             }
-            Y[offset + flip(rotate(move, size, ix), player)] = 1;
+            Y[offset + flip(rotate(move, size, ix), size)] = 1;
 //          dump(X, size, offset, Y);
             C++;
             offset += size * size;
