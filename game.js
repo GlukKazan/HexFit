@@ -58,7 +58,7 @@ function encode(board, size, player, offset, X, ix) {
             if (board[i] * player > 0.01) {
                 X[offset + rotate(i, size, ix)] = 1;
             }
-            if (board[i] * player < - 0.01) {
+            if (board[i] * player < -0.01) {
                 X[offset + po + rotate(i, size, ix)] = 1;
             }
         }
@@ -98,7 +98,7 @@ async function proceed(model, size, batch, data, logger) {
                     await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'hex-' + model.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'hex-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }

@@ -3,11 +3,11 @@
 const _ = require('underscore');
 const tf = require('@tensorflow/tfjs-node-gpu');
 
-const PLANE_COUNT = 1; // TODO: 2
+const PLANE_COUNT = 2;
 const BATCH_SIZE  = 256;
-const EPOCH_COUNT = 10;
+const EPOCH_COUNT = 5;
 const VALID_SPLIT = 0.1;
-const LEARNING_RATE = 0.0001;
+const LEARNING_RATE = 0.001;
 
 const FILE_PREFIX = 'file:///users/valen';
 
@@ -22,7 +22,7 @@ async function load(url, logger) {
     await init();
     const model = await tf.loadLayersModel(url);
     const opt = tf.train.sgd(LEARNING_RATE);
-    model.compile({optimizer: 'sgd', loss: ['categoricalCrossentropy'/*, 'meanSquaredError'*/], metrics: ['accuracy']});
+    model.compile({optimizer: opt, loss: ['categoricalCrossentropy', 'meanSquaredError'], metrics: ['accuracy']});
     const t1 = Date.now();
     console.log('Model [' + url + '] loaded: ' + (t1 - t0));
     if (!_.isUndefined(logger)) {
@@ -62,7 +62,7 @@ async function create(size, logger) {
     const model = tf.model({inputs: input, outputs: [policy, value]});
 
     const opt = tf.train.sgd(LEARNING_RATE);
-    model.compile({optimizer: 'sgd', loss: ['categoricalCrossentropy', 'meanSquaredError'], metrics: ['accuracy']});
+    model.compile({optimizer: opt, loss: ['categoricalCrossentropy', 'meanSquaredError'], metrics: ['accuracy']});
    
     const t1 = Date.now();
     console.log('Model created: ' + (t1 - t0));
