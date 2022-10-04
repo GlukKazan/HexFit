@@ -7,9 +7,11 @@ const LETTERS = 'ABCDEFGHIJKLMNabcdefghijklmn';
 
 let X = null;
 let Y = null;
+let Z = null;
 
 let C = 0;
-let offset = 0;
+let xo = 0;
+let yo = 0;
 
 let cnt = 0;
 
@@ -45,47 +47,78 @@ function rotate(pos, size, ix) {
     return ((size - 1) - y) * size + (size - 1) - x;
 }
 
-function flip(pos, size) {
-    const x = pos % size;
-    const y = (pos / size) | 0;
-    return x * size + y;
+function encode(board, size, player, offset, X, ix) {
+    if (ml.PLANE_COUNT == 1) {
+        for (let i = 0; i < size * size; i++) {
+            X[offset + rotate(i, size, ix)] = board[i] * player;
+        }
+    } else {
+        const po = size * size;
+        for (let i = 0; i < size * size; i++) {
+            if (board[i] * player > 0.01) {
+                X[offset + rotate(i, size, ix)] = 1;
+            }
+            if (board[i] * player < - 0.01) {
+                X[offset + po + rotate(i, size, ix)] = 1;
+            }
+        }
+    }
+}
+
+function isDigit(c) {
+    if (c == '-') return true;
+    return (c >= '0') && (c <= '9');
 }
 
 async function proceed(model, size, batch, data, logger) {
     if (data.length % 2 != 0) return;
     let board = new Float32Array(size * size);
+    let R = (data.length % 4 != 0) ? 1 : -1;
     let player = 1;
-    for (let pos = 0; pos < data.length - 1; pos += 2, player = -player) {
+    let pos = 0;
+    while (pos < data.length - 1) {
+        let V = 0; let s = 0.1;
+        while ((pos < data.length) && isDigit(data[pos])) {
+            if (data[pos] == '-') {
+                V = -V;
+                continue;
+            }
+            V += +data[pos] * s;
+            s = s / 10;
+        }
         const x = _.indexOf(LETTERS, data[pos]);
         if ((x < 0) || (x >= size)) return;
         const y = _.indexOf(LETTERS, data[pos + 1].toUpperCase());
         if ((y < 0) || (y >= size)) return;
+        pos += 2;
         const move = y * size + x;
         for (let ix = 0; ix < 2; ix++) {
             if ((X === null) || (C >= batch)) {
                 if (X !== null) {
-                    await ml.fit(model, size, X, Y, C, logger);
+                    await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'flip-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'hex-' + model.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
                 }
-                offset = 0;
-                X = new Float32Array(batch * size * size);
+                xo = 0; yo = 0;
+                X = new Float32Array(ml.PLANE_COUNT * batch * size * size);
                 Y = new Float32Array(batch * size * size);
+                Z = new Float32Array(batch);
                 C = 0;
             }
-            for (let i = 0; i < size * size; i++) {
-                X[offset + flip(rotate(i, size, ix), size)] = board[i] * player;
-            }
-            Y[offset + flip(rotate(move, size, ix), size)] = 1;
+            encode(board, size, player, xo, X, ix);
+            Y[yo + rotate(move, size, ix)] = (R - V) * player
+            Z[C] = R * player;
 //          dump(X, size, offset, Y);
+            xo += size * size * ml.PLANE_COUNT;
+            yo += size * size;
             C++;
-            offset += size * size;
         }
         board[move] = player;
+        player = -player;
     }
 }
 
