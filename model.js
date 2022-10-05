@@ -10,7 +10,7 @@ const VALID_SPLIT = 0.1;
 const LEARNING_RATE = 0.001;
 
 const FILE_PREFIX = 'file:///users/valen';
-const act = 'sigmoid'; // 'relu';
+const act = 'softplus'; //'sigmoid'; // 'relu';
 
 async function init() {
     await tf.ready();
