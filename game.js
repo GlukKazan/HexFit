@@ -98,7 +98,7 @@ async function proceed(model, size, batch, data, logger) {
                     await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'half-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'hex-softplus-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
@@ -111,9 +111,9 @@ async function proceed(model, size, batch, data, logger) {
             }
             encode(board, size, player, xo, X, ix);
             const r = (winner - estimate) * player;
-            if (r > 0) {
+//          if (r > 0) {
                 Y[yo + rotate(move, size, ix)] = r;
-            }
+//          }
             Z[C] = winner * player;
 //          dump(X, size, offset, Y);
             xo += size * size * ml.PLANE_COUNT;

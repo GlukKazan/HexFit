@@ -3,14 +3,14 @@
 const _ = require('underscore');
 const tf = require('@tensorflow/tfjs-node-gpu');
 
-const PLANE_COUNT = 1; // TODO: 2
+const PLANE_COUNT = 2; // TODO: 2
 const BATCH_SIZE  = 256;
 const EPOCH_COUNT = 5;
 const VALID_SPLIT = 0.1;
 const LEARNING_RATE = 0.001;
 
 const FILE_PREFIX = 'file:///users/valen';
-const act = 'softplus'; //'sigmoid'; // 'relu';
+const act = 'softplus'; //'softplus'; //'sigmoid'; // 'relu';
 
 async function init() {
     await tf.ready();
@@ -90,9 +90,9 @@ async function fit(model, size, x, y, z, batch, logger) {
 
 //  console.log(h);
     for (let i = 0; i < EPOCH_COUNT; i++) {
-        console.log('epoch = ' + i + ', acc = [' + h.history.dense_Dense3_acc[i] + ' ,' + h.history.dense_Dense5_acc[i] + '], loss = [' + h.history.dense_Dense3_loss[i] + ' ,' + h.history.dense_Dense5_loss[i] + ', ' + h.history.loss[i] + '], val_acc = [' + h.history.val_dense_Dense3_acc[i] + ' ,' + h.history.val_dense_Dense5_acc[i] + '], val_loss = [' + h.history.val_dense_Dense3_loss[i] + ' ,' + h.history.val_dense_Dense5_loss[i] + ', ' + h.history.val_loss[i] + ']');
+        console.log('epoch = ' + i + ', acc = [' + h.history.dense_Dense3_acc[i] + ' ,' + h.history.dense_Dense5_acc[i] + '], loss = [' + h.history.dense_Dense3_loss[i] + ' ,' + h.history.dense_Dense5_loss[i] + ' ,' + h.history.loss[i] + '], val_acc = [' + h.history.val_dense_Dense3_acc[i] + ' ,' + h.history.val_dense_Dense5_acc[i] + '], val_loss = [' + h.history.val_dense_Dense3_loss[i] + ' ,' + h.history.val_dense_Dense5_loss[i] + ' ,' + h.history.val_loss[i] + ']');
         if (!_.isUndefined(logger)) {
-            logger.info('epoch = ' + i + ', acc = [' + h.history.dense_Dense3_acc[i] + ' ,' + h.history.dense_Dense5_acc[i] + '], loss = [' + h.history.dense_Dense3_loss[i] + ' ,' + h.history.dense_Dense5_loss[i] + ', ' + h.history.loss[i] + '], val_acc = [' + h.history.val_dense_Dense3_acc[i] + ' ,' + h.history.val_dense_Dense5_acc[i] + '], val_loss = [' + h.history.val_dense_Dense3_loss[i] + ' ,' + h.history.val_dense_Dense5_loss[i] + ', ' + h.history.val_loss[i] + ']');
+            logger.info('epoch = ' + i + ', acc = [' + h.history.dense_Dense3_acc[i] + ' ,' + h.history.dense_Dense5_acc[i] + '], loss = [' + h.history.dense_Dense3_loss[i] + ' ,' + h.history.dense_Dense5_loss[i] + ' ,' + h.history.loss[i] + '], val_acc = [' + h.history.val_dense_Dense3_acc[i] + ' ,' + h.history.val_dense_Dense5_acc[i] + '], val_loss = [' + h.history.val_dense_Dense3_loss[i] + ' ,' + h.history.val_dense_Dense5_loss[i] + ' ,' + h.history.val_loss[i] + ']');
         }
     }
     const t1 = Date.now();
