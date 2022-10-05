@@ -73,17 +73,17 @@ function isDigit(c) {
 async function proceed(model, size, batch, data, logger) {
     if (data.length % 2 != 0) return;
     let board = new Float32Array(size * size);
-    let R = (data.length % 4 != 0) ? 1 : -1;
+    let winner = (data.length % 4 != 0) ? 1 : -1;
     let player = 1;
     let pos = 0;
     while (pos < data.length - 1) {
-        let V = 0; let s = 0.1;
+        let estimate = 0; let s = 0.1;
         while ((pos < data.length) && isDigit(data[pos])) {
             if (data[pos] == '-') {
-                V = -V;
+                estimate = -estimate;
                 continue;
             }
-            V += +data[pos] * s;
+            estimate += +data[pos] * s;
             s = s / 10;
         }
         const x = _.indexOf(LETTERS, data[pos]);
@@ -98,7 +98,7 @@ async function proceed(model, size, batch, data, logger) {
                     await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'hex-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'half-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
@@ -110,8 +110,9 @@ async function proceed(model, size, batch, data, logger) {
                 C = 0;
             }
             encode(board, size, player, xo, X, ix);
-            Y[yo + rotate(move, size, ix)] = (R - V) * player
-            Z[C] = R * player;
+            const r = (winner - estimate) * player;
+            Y[yo + rotate(move, size, ix)] = (r > 0) ? r : 0;
+            Z[C] = winner * player;
 //          dump(X, size, offset, Y);
             xo += size * size * ml.PLANE_COUNT;
             yo += size * size;

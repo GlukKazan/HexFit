@@ -25,7 +25,7 @@ const logFormat = winston.format.combine(
 
 var transport = new winston.transports.DailyRotateFile({
     dirname: '',
-    filename: 'hex-' + ml.PLANE_COUNT + '-' + SIZE + '-%DATE%.log',
+    filename: 'half-' + ml.PLANE_COUNT + '-' + SIZE + '-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
@@ -51,7 +51,7 @@ async function proceed() {
         logger.info(line);
         await game.proceed(model, SIZE, BATCH, line, logger);
     }
-    await ml.save(model, 'hex-' + ml.PLANE_COUNT + '-' + SIZE + '.json');
+    await ml.save(model, 'half-' + ml.PLANE_COUNT + '-' + SIZE + '.json');
 }
 
 async function run() {
