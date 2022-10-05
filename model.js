@@ -10,6 +10,7 @@ const VALID_SPLIT = 0.1;
 const LEARNING_RATE = 0.001;
 
 const FILE_PREFIX = 'file:///users/valen';
+const act = 'sigmoid'; // 'relu';
 
 async function init() {
     await tf.ready();
@@ -39,24 +40,24 @@ async function create(size, logger) {
 
     const input = tf.input({shape: shape});
     const z1 = tf.layers.zeroPadding2d({padding: 3, dataFormat: 'channelsFirst'}).apply(input);
-    const c1 = tf.layers.conv2d({filters: 48, kernelSize: [7, 7], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z1);
+    const c1 = tf.layers.conv2d({filters: 48, kernelSize: [7, 7], dataFormat: 'channelsFirst', activation: act}).apply(z1);
 
     const z2 = tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}).apply(c1);
-    const c2 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z2);
+    const c2 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: act}).apply(z2);
 
     const z3 = tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}).apply(c2);
-    const c3 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z3);
+    const c3 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: act}).apply(z3);
 
     const z4 = tf.layers.zeroPadding2d({padding: 2, dataFormat: 'channelsFirst'}).apply(c3);
-    const c4 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: 'relu'}).apply(z4);
+    const c4 = tf.layers.conv2d({filters: 32, kernelSize: [5, 5], dataFormat: 'channelsFirst', activation: act}).apply(z4);
 
     const fl = tf.layers.flatten().apply(c4);
-    const out = tf.layers.dense({units: 512, activation: 'relu'}).apply(fl);
+    const out = tf.layers.dense({units: 512, activation: act}).apply(fl);
 
-    const ph = tf.layers.dense({units: 512, activation: 'relu'}).apply(out);
+    const ph = tf.layers.dense({units: 512, activation: act}).apply(out);
     const policy = tf.layers.dense({units: size * size, activation: 'softmax'}).apply(ph);
 
-    const vh = tf.layers.dense({units: 512, activation: 'relu'}).apply(out);
+    const vh = tf.layers.dense({units: 512, activation: act}).apply(out);
     const value = tf.layers.dense({units: 1, activation: 'tanh'}).apply(vh);
 
     const model = tf.model({inputs: input, outputs: [policy, value]});

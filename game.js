@@ -49,17 +49,17 @@ function rotate(pos, size, ix) {
 
 function encode(board, size, player, offset, X, ix) {
     if (ml.PLANE_COUNT == 1) {
-        for (let i = 0; i < size * size; i++) {
-            X[offset + rotate(i, size, ix)] = board[i] * player;
+        for (let pos = 0; pos < size * size; pos++) {
+            X[offset + rotate(pos, size, ix)] = board[pos] * player;
         }
     } else {
         const po = size * size;
-        for (let i = 0; i < size * size; i++) {
-            if (board[i] * player > 0.01) {
-                X[offset + rotate(i, size, ix)] = 1;
+        for (let pos = 0; pos < size * size; pos++) {
+            if (board[pos] * player > 0.01) {
+                X[offset + rotate(pos, size, ix)] = 1;
             }
-            if (board[i] * player < -0.01) {
-                X[offset + po + rotate(i, size, ix)] = 1;
+            if (board[pos] * player < -0.01) {
+                X[offset + po + rotate(pos, size, ix)] = 1;
             }
         }
     }
@@ -111,7 +111,9 @@ async function proceed(model, size, batch, data, logger) {
             }
             encode(board, size, player, xo, X, ix);
             const r = (winner - estimate) * player;
-            Y[yo + rotate(move, size, ix)] = (r > 0) ? r : 0;
+            if (r > 0) {
+                Y[yo + rotate(move, size, ix)] = r;
+            }
             Z[C] = winner * player;
 //          dump(X, size, offset, Y);
             xo += size * size * ml.PLANE_COUNT;
