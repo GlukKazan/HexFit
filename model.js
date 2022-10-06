@@ -11,7 +11,7 @@ const LEARNING_RATE = 0.001;
 
 const FILE_PREFIX = 'file:///users/valen';
 const act = 'relu';
-const opt = 'sgd'; // 'adagrad'; // 'adadelta';
+const opt = 'adagrad'; // 'adagrad'; // 'adadelta';
 
 async function init() {
     await tf.ready();

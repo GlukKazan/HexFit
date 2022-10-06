@@ -98,7 +98,7 @@ async function proceed(model, size, batch, data, logger) {
                     await ml.fit(model, size, X, Y, Z, C, logger);
                     cnt++;
                     if ((cnt % 1000) == 0) {
-                        await ml.save(model, 'hex-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
+                        await ml.save(model, 'adagrad-' + ml.PLANE_COUNT + '-' + size + '-' + cnt + '.json');
                         console.log('Save [' + cnt + ']: ' + data);
                         logger.info('Save [' + cnt + ']: ' + data);
                     }
