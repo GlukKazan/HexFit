@@ -80,7 +80,7 @@ async function proceed(model, size, batch, data, logger) {
         let estimate = 0; let s = 0.1;
         while ((pos < data.length) && isDigit(data[pos])) {
             if (data[pos] == '-') {
-                estimate = -estimate;
+                s = -s;
                 continue;
             }
             estimate += +data[pos] * s;
